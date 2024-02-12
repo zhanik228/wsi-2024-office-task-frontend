@@ -19,10 +19,10 @@
             </div>
         </div>
         <div class="sidebar__body">
-            <RoomList :sidebar_body="sidebar_body" />
+            <RoomList :sidebar_body="chatRooms" />
         </div>
         <div class="sidebar__footer">
-            <ChatRoom :token="token" :currentRoom="currentRoom" :messages="messages" />
+            <ChatRoom :token="token" :currentUser="user" :currentRoom="currentRoom" :messages="messages" />
         </div>
     </div>
     </div>
@@ -32,6 +32,7 @@
 import axios from 'axios'
 import pusher from 'pusher-js'
 import Echo from "laravel-echo"
+import axiosInstance from '@/api/axiosInstance'
 
 import firstAvatar from '@/assets/avatars/avatar-01.svg'
 import ChatRoom from './ChatRoom.vue'
@@ -80,11 +81,12 @@ export default {
         },
         async getRooms() {
             try {
-                const res = await axios.get('http://127.0.0.1:8000/api/v1/chat/rooms', {
+                const res = await axiosInstance.get('/api/v1/chat/rooms', {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
                 });
+                console.log(res.data)
                 this.chatRooms = res.data;
             }
             catch (error) {
@@ -95,19 +97,23 @@ export default {
             this.currentRoom = room;
         },
         async getUserRoom() {
-            const res = await axios.get('http://127.0.0.1:8000/api/v1/user', {
+            const res = await axiosInstance.get('/api/v1/user', {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 }
             });
+            console.log(res)
             console.log(res.data.chat_room_id);
-            this.setRoom(this.chatRooms[res.data.chat_room_id - 1]);
-            if (!res.data.chat_room_id) {
+            if (res.data.chat_room_id) {
+                this.setRoom(this.chatRooms[res.data.chat_room_id - 1]);
+            }
+            else {
                 try {
                     const res = await axios.put(`http://127.0.0.1:8000/api/v1/user/${this.user.id}`, {
                         chat_room_id: 1,
                     });
                     console.log(res);
+                    this.setRoom(this.chatRooms[res.data.chat_room_id - 1])
                 }
                 catch (error) {
                     console.error(error);
@@ -116,7 +122,7 @@ export default {
         },
         async getMessages() {
             try {
-                const res = await axios.get('http://127.0.0.1:8000/api/v1/chat/room/' + this.currentRoom.id + '/messages', {
+                const res = await axiosInstance.get('/api/v1/chat/room/' + this.currentRoom.id + '/messages', {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
@@ -129,13 +135,14 @@ export default {
         },
         async logout() {
             try {
-                const res = axios.post('http://127.0.0.1:8000/api/v1/logout', {}, {
+                const res = axiosInstance.post('/api/v1/logout', {}, {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
                 });
                 console.log(res);
                 localStorage.removeItem('user');
+                localStorage.removeItem('token')
                 location.reload();
             }
             catch (error) {
@@ -143,7 +150,7 @@ export default {
             }
         },
         connect() {
-            if (this.currentRoom.id) {
+            if (this.currentRoom?.id) {
                 let vm = this;
                 this.getMessages();
                 window.Echo.private('chat.' + this.currentRoom.id)
@@ -207,7 +214,7 @@ export default {
     flex-direction: column;
     position: fixed;
     left: 0;
-    background-color: rgb(152, 224, 224);
+    background-color: rgb(76, 195, 224);
     height: 100vh;
     overflow-y: auto;
     z-index: 20;
@@ -277,6 +284,7 @@ export default {
     margin-top: 15px;
     border-bottom: 1px solid #fff;
     flex-grow: 1;
+    padding: 10px 0;
 }
 
 .sidebar__footer {

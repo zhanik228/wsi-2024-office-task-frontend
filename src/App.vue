@@ -635,7 +635,19 @@
     <line class="cls-15" x1="1725.39" y1="45.93" x2="1796.5" y2="45.93"/>
   </g>
       </svg>
-      <div v-for="slot in columns[0]?.slots" :id="slot.id" @dragover="handlePersonDragover(slot)" :key="slot" draggable="true" :class="`person-icon`" :style="{top: slot.position_y +'px', left: slot.position_x +'px', background: `url(http://127.0.0.1:8000${slot.user?.avatar})`}"></div>
+      <div v-for="column in columns">
+        <div 
+        v-for="slot in column.slots" 
+        :id="slot.id" 
+        @dragstart="handleDragStart(slot.user_id, $event)" 
+        @dragover.prevent="handlePersonDragover(slot, $event)" 
+        @dragleave="handlePersonDragleave"
+        @drop.prevent="handlePersonDrop(slot, $event)"
+        :key="slot" 
+        draggable="true" 
+        :class="`person-icon ${slot.user_id}`" 
+        :style="{top: slot.position_y +'px', left: slot.position_x +'px', background: `url(http://127.0.0.1:8000${slot.user?.avatar})`}"></div>
+        </div>
       <div class="the-office-zone" @dragover="handleDragZone"></div>
     </div>
   </main>
@@ -645,9 +657,13 @@
 import CreateUser from "@/components/CreateUser.vue";
 import SideBar from "@/components/SideBar.vue";
 
+import pusher from 'pusher-js'
+import Echo from "laravel-echo"
+
 import avatar from "@/assets/avatars/avatar-01.svg"
 import secondAvatar from '@/assets/avatars/avatar-02.svg'
 import axios from "axios";
+import axiosInstance from '@/api/axiosInstance'
 
 export default {
   components: { CreateUser, SideBar },
@@ -657,81 +673,7 @@ export default {
       modalMode: 'create',
       isModalOpen: false,
       columns: [],
-      officeSlots: [
-        {
-          name: "The office",
-          slots: [
-            {
-              number: 1,
-              position: {
-                x: 405,
-                y: 63
-              },
-              userId: true,
-              img: avatar
-            },
-            {
-              number: 2,
-              position: {
-                x: 335,
-                y: 163
-              },
-              userId: false,
-              img: secondAvatar,
-            },
-            {
-              number: 3,
-              position: {
-                x: 365,
-                y: 183
-              },
-              userId: false,
-              img: avatar,
-            },
-            {
-              number: 4,
-              position: {
-                x: 395,
-                y: 183
-              },
-              userId: false,
-              img: avatar,
-            }
-          ]
-        },
-      ],
-      localData:  [
-        {
-        "id": 1, 
-        "positions": 
-          [
-            {"x": 405, "y": 63, isAvailable: true},
-            {x: 335, y: 163, isAvailable: true},
-            {x: 365, y: 183, isAvailable: true},
-            {x: 395, y: 183, isAvailable: true}
-          ],
-        "items": [
-          {
-            "id": 72714, 
-            "position": {"x": 405, "y": 63}, 
-            "content": "Edit Video 🎨" 
-          }
-        ]
-        },
-        {
-        "id": 2, 
-        "items": [
-          {"id": 23844, "content": "Record Video!!! 📹" }
-        ]
-        },
-        {
-        "id": 3, 
-        "items": [
-          {"id": 61584, "content": "Planing 👔" }, 
-          {"id": 9019, "content": "Coding 🧑‍💻" }
-        ]
-        }
-  ]
+      token: localStorage.getItem('token'),
     }
   },
   computed: {
@@ -743,15 +685,33 @@ export default {
     handleDragZone(e) {
       console.log(e.target.classList.add())
     },
-    handlePersonDragover(slot) {
-      console.log(slot, window.event.classList)
+    handlePersonDragover(slot, event) {
+      if (!slot.user_id) {
+        event.target.classList.add('seat_hover')
+      }
+    },
+    async handlePersonDrop(slot, event) {
+      try {
+        const res = await axiosInstance.put(`/api/v1/slot/${slot.id}/user/${event.dataTransfer.getData('text/plain')}`)
+        console.log(res)
+      } catch (error) {
+        console.error(error)
+      }
+      event.target.classList.remove('seat_hover')
+    },
+    handlePersonDragleave(event) {
+      event.target.classList.remove('seat_hover')
+    },
+    handleDragStart(id, event) {
+      console.log(id)
+      event.dataTransfer.setData('text/plain', id)
     },
     async getColumn() {
 
     },
     async getColumns() {
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/v1/column')
+        const res = await axios.get('http://127.0.0.1:8000/api/v1/columns')
         this.columns = res.data
         console.log(res.data[0].slots)
       } catch (error) {
@@ -760,22 +720,45 @@ export default {
     }
   },
   mounted() {
+    // window.Pusher = pusher;
+    // window.Echo = new Echo({
+    //     broadcaster: 'pusher',
+    //     key: '22837aaac7ebdd96fa58',
+    //     cluster: 'eu',
+    //     forceTLS: true,
+    //     authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+    //     auth: {
+    //         headers: {
+    //             Accept: 'application/json',
+    //             Authorization: `Bearer ${this.token}`
+    //         }
+    //     }
+    // });
     if (!localStorage.getItem('user')) {
       this.isModalOpen = true
     }
     this.getColumns()
+    let vm = this;
+    window.Echo.private('column.')
+        .listen('.column.new', e => {
+        vm.getColumns()
+    });
   }
 }
 </script>
 
 <style scoped>
+
+.seat_hover {
+  background: rgba(60, 223, 27, 0.5)!important;
+}
 .svg {
   width: 1400px;
   height: 720px;
 }
 .office {
   height: 100%;
-  margin-left: 264px;
+  margin-left: 300px;
   overflow-x: scroll;
   position: relative;
 }
