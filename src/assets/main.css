@@ -10,3 +10,7 @@
 body {
   font-family: 'Fira Code', monospace;
 }
+
+html, body {
+  height: 100%;
+}

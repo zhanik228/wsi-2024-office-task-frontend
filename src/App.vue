@@ -1,7 +1,7 @@
 <template>
   <main>
     <CreateUser v-model:modalMode="modalMode" v-model:modalOpen="isModalOpen" />
-    <SideBar v-model:modalOpen="isModalOpen" v-model:modalMode="modalMode" />
+    <SideBar v-model:modalOpen="isModalOpen" :columns="columns" v-model:modalMode="modalMode" />
     <div class="office">
       <svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3611.57 1661.28">
   <g id="Stairs">
@@ -635,20 +635,55 @@
     <line class="cls-15" x1="1725.39" y1="45.93" x2="1796.5" y2="45.93"/>
   </g>
       </svg>
-      <div v-for="column in columns">
+      <div v-for="column in columns" :class="(column.name.toLowerCase()).split(' ').join('-')">
         <div 
         v-for="slot in column.slots" 
         :id="slot.id" 
-        @dragstart="handleDragStart(slot.user_id, $event)" 
+        @dragstart="slot.user_id && slot.user_id !== user.id ? alertUnknownUser() : handleDragStart(slot.user_id, $event)" 
         @dragover.prevent="handlePersonDragover(slot, $event)" 
         @dragleave="handlePersonDragleave"
         @drop.prevent="handlePersonDrop(slot, $event)"
         :key="slot" 
         draggable="true" 
-        :class="`person-icon ${slot.user_id}`" 
-        :style="{top: slot.position_y +'px', left: slot.position_x +'px', background: `url(http://127.0.0.1:8000${slot.user?.avatar})`}"></div>
+        :class="`person-icon ${slot.user_id} ${user.id}`" 
+        :style="{
+          top: slot.position_y +'px', 
+          left: slot.position_x +'px', 
+          background: `url(http://127.0.0.1:8000${slot.user?.avatar})`,
+          cursor: slot.user_id && slot.user_id  !== user.id ? 'not-allowed' : slot.user_id ? 'grab' : ''
+          }"
+        ></div>
         </div>
-      <div class="the-office-zone" @dragover="handleDragZone"></div>
+      <div 
+        class="the-office-zone" 
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+      ></div>
+      <div 
+        class="desk-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+      <div 
+        class="meeting-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+      <div 
+        class="open-office1-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+        <div 
+        class="silent-room1-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+        <div 
+        class="kitchen-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
     </div>
   </main>
 </template>
@@ -674,23 +709,35 @@ export default {
       isModalOpen: false,
       columns: [],
       token: localStorage.getItem('token'),
+      user: JSON.parse(localStorage.getItem('user'))
     }
   },
   computed: {
     theOfficeSlots() {
       return this.officeSlots.find(slot => slot.name == 'The office')
-    }
+    },
   },
   methods: {
     handleDragZone(e) {
-      console.log(e.target.classList.add())
+      console.log(e.target.classList.add('active'))
+    },
+    handleZoneLeave(e) {
+      console.log(e.target.classList.remove('active'))
     },
     handlePersonDragover(slot, event) {
       if (!slot.user_id) {
         event.target.classList.add('seat_hover')
       }
     },
+    alertUnknownUser() {
+      alert('You cannot drag other people!!!')
+    },
     async handlePersonDrop(slot, event) {
+      if (slot.user_id) {
+        console.log(slot)
+        alert('This place is occupied')
+        return
+      }
       try {
         const res = await axiosInstance.put(`/api/v1/slot/${slot.id}/user/${event.dataTransfer.getData('text/plain')}`)
         console.log(res)
@@ -753,14 +800,14 @@ export default {
   background: rgba(60, 223, 27, 0.5)!important;
 }
 .svg {
-  width: 1400px;
-  height: 720px;
+  width: 978px;
+  height: 768px;
 }
+
 .office {
-  height: 100%;
-  margin-left: 300px;
-  overflow-x: scroll;
+  margin-left: 322px;
   position: relative;
+  overflow: auto;
 }
 
 @media screen and (max-width: 720px) {
@@ -770,11 +817,11 @@ export default {
 }
 
 .the-office-zone {
-  width: 170px;
-  height: 165px;
+  width: 116px;
+  height: 118px;
   position: absolute;
-  top: 8%;
-  left: 330px;
+  top: 170px;
+  left: 232px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -791,6 +838,201 @@ export default {
 }
 
 .the-office-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.the-office-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.desk-zone {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: 300px;
+  left: 160px;
+  opacity: 0;
+  transition: all .3s linear;
+}
+
+.desk-zone::before {
+  content: 'Desk zone';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.desk-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.desk-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.meeting-zone {
+  position: absolute;
+  width: 190px;
+  height: 120px;
+  top: 170px;
+  left: 350px;
+  transition: all .3s linear;
+  opacity: 0;
+}
+
+.meeting-zone::before {
+  content: 'Meeting zone';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.meeting-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.meeting-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office1-zone {
+  position: absolute;
+  width: 230px;
+  height: 120px;
+  top: 310px;
+  left: 270px;
+  transition: all .3s linear;
+  opacity: 0;
+}
+
+.open-office1-zone::before {
+  content: 'Open Office 1 zone';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.open-office1-zone::after {
+  content: '';
+  position: absolute;
+  border: 3px solid green;
+  top: 100%;
+  left: -85px;
+  width: 240px;
+  height: 105px;
+}
+
+.open-office1-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office1-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.silent-room1-zone {
+  position: absolute;
+  width: 110px;
+  height: 90px;
+  top: 445px;
+  left: 430px;
+  transition: all .3s linear;
+  opacity: 0;
+  z-index: 4;
+}
+
+.silent-room1-zone::before {
+  content: 'Silent Room 1 zone';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.silent-room1-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.silent-room1-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office1-zone {
+  position: absolute;
+  width: 230px;
+  height: 120px;
+  top: 310px;
+  left: 270px;
+  transition: all .3s linear;
+  opacity: 0;
+}
+
+.open-office1-zone::before {
+  content: 'Open Office 1 zone';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.open-office1-zone::after {
+  content: '';
+  position: absolute;
+  border: 3px solid green;
+  top: 100%;
+  left: -85px;
+  width: 240px;
+  height: 105px;
+}
+
+.open-office1-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office1-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.kitchen-zone {
+  position: absolute;
+  width: 224px;
+  height: 74px;
+  top: 335px;
+  left: 540px;
+  transition: all .3s linear;
+  opacity: 0;
+  z-index: 4;
+}
+
+.kitchen-zone::before {
+  content: 'Kitchen';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.kitchen-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.kitchen-zone.active {
   opacity: 1;
   border: 3px solid green;
 }

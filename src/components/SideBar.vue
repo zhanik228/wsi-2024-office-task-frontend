@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="sidebar__body">
-            <RoomList :sidebar_body="chatRooms" />
+            <RoomList :sidebar_body="columns" />
         </div>
         <div class="sidebar__footer">
             <ChatRoom :token="token" :currentUser="user" :currentRoom="currentRoom" :messages="messages" />
@@ -49,49 +49,18 @@ export default {
             user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : 'Username',
             sidebarOpen: false,
             avatar: firstAvatar,
-            sidebar_body: [
-                {
-                    title: {
-                        name: 'The office',
-                        bold: true,
-                    },
-                    people: [
-                        'Mary',
-                        'Richard'
-                    ],
-                    max_amount: 4,
-                },
-                {
-                    title: {
-                        name: 'Desk',
-                        bold: false,
-                    },
-                    people: [
-                        'John',
-                    ],
-                    max_amount: 3
-                }
-            ]
         };
+    },
+    props: {
+        columns: {
+            required: false,
+            type: Array
+        }
     },
     methods: {
         changeAvatar() {
             this.$emit('update:modalMode', 'edit');
             this.$emit('update:modalOpen', true);
-        },
-        async getRooms() {
-            try {
-                const res = await axiosInstance.get('/api/v1/chat/rooms', {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`
-                    }
-                });
-                console.log(res.data)
-                this.chatRooms = res.data;
-            }
-            catch (error) {
-                console.error(error);
-            }
         },
         setRoom(room) {
             this.currentRoom = room;
@@ -105,7 +74,7 @@ export default {
             console.log(res)
             console.log(res.data.chat_room_id);
             if (res.data.chat_room_id) {
-                this.setRoom(this.chatRooms[res.data.chat_room_id - 1]);
+                this.setRoom(this.columns[res.data.chat_room_id - 1]);
             }
             else {
                 try {
@@ -163,6 +132,9 @@ export default {
     watch: {
         currentRoom() {
             this.connect();
+        },
+        columns() {
+            this.getUserRoom();
         }
     },
     mounted() {
@@ -180,8 +152,6 @@ export default {
                 }
             }
         });
-        this.getRooms();
-        this.getUserRoom();
     },
     components: { ChatRoom, RoomList }
 }

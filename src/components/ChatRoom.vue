@@ -7,9 +7,9 @@
             </p>
         </div>
         <h2 class="chat-message__title">Send Message: </h2>
-        <form style="display: flex;">
-            <input v-model="message" @keyup.enter="sendMessage" type="text" placeholder="...">
-            <button type="button" @click="sendMessage">Send</button>
+        <form @submit.prevent="sendMessage">
+            <input v-model="message"type="text" placeholder="...">
+            <button type="submit">Send</button>
         </form>
     </div>
 </template>
@@ -39,7 +39,8 @@ export default {
         }
     },
     methods: {
-        async sendMessage() {
+        async sendMessage(e) {
+            e.preventDefault()
             try {
                 const res = await axiosInstance.post('http://127.0.0.1:8000/api/v1/chat/room/' + this.currentRoom.id + '/message', {
                     message: this.message
