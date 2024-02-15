@@ -1,7 +1,7 @@
 <template>
   <main>
-    <CreateUser v-model:modalMode="modalMode" v-model:modalOpen="isModalOpen" />
-    <SideBar v-model:modalOpen="isModalOpen" :columns="columns" v-model:modalMode="modalMode" />
+    <CreateUser v-model:startTimer="startTimer" v-model:modalMode="modalMode" v-model:modalOpen="isModalOpen" />
+    <SideBar v-model:startTimer="startTimer" v-model:modalOpen="isModalOpen" :columns="columns" v-model:modalMode="modalMode" />
     <div class="office">
       <svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3611.57 1661.28">
   <g id="Stairs">
@@ -684,6 +684,16 @@
         @dragleave="handleZoneLeave" 
         @dragover="handleDragZone"
         ></div>
+        <div 
+        class="breakroom-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+        <div
+        class="open-office2"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
     </div>
   </main>
 </template>
@@ -709,7 +719,8 @@ export default {
       isModalOpen: false,
       columns: [],
       token: localStorage.getItem('token'),
-      user: JSON.parse(localStorage.getItem('user'))
+      user: JSON.parse(localStorage.getItem('user')),
+      startTimer: false,
     }
   },
   computed: {
@@ -1036,6 +1047,65 @@ export default {
   opacity: 1;
   border: 3px solid green;
 }
+
+.breakroom-zone {
+  position: absolute;
+  width: 124px;
+  height: 134px;
+  top: 167px;
+  left: 825px;
+  transition: all .3s linear;
+  opacity: 0;
+  z-index: 4;
+}
+
+.breakroom-zone::before {
+  content: 'breakroom';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.breakroom-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.breakroom-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office2-zone {
+  position: absolute;
+  width: 124px;
+  height: 134px;
+  top: 167px;
+  left: 825px;
+  transition: all .3s linear;
+  opacity: 0;
+  z-index: 4;
+}
+
+.open-office2-zone::before {
+  content: 'open-office2';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.open-office2-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.open-office2-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
 
 .person-icon {
   width: 30px;

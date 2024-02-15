@@ -12,7 +12,7 @@
                 <img width="120" height="120" :src="`http://127.0.0.1:8000${user.avatar}`" alt="avatar">
                 <div class="avatar-description">
                     <h2 class="avatar-description__title">{{ user.username }}</h2>
-                    <p>Being at work 3h 46m</p>
+                    <p>Being at work <span class="my-timer"></span></p>
                 </div>
                 <button @click="changeAvatar" class="edit-button">Change avatar</button>
                 <button @click="logout" class="end-button">End session</button>
@@ -55,9 +55,37 @@ export default {
         columns: {
             required: false,
             type: Array
+        },
+        startTimer: {
+            type: Boolean
         }
     },
     methods: {
+        startTimerr() {
+            const timer = localStorage.getItem('time') || "00:00:00"
+            const arr = timer.split(":")
+            let hour = arr[0]
+            let min = arr[1]
+            let sec = arr[2]
+
+            if (sec == 59) {
+                if (min == 59) {
+                    hour++
+                    min = 0
+                    if (hour < 10) hour = "0" + hour
+                } else {
+                    min++
+                }
+                if (min < 10) min = "0" + min;
+                sec = 0
+            } else {
+                sec++
+                if (sec < 10) sec = "0" + sec
+            }
+            document.querySelector('.my-timer').innerHTML = hour + "h" + min + "m"
+            setTimeout(this.startTimerr, 1000)
+            localStorage.setItem('time',  hour + ":" + min + ":" + sec)
+        },
         changeAvatar() {
             this.$emit('update:modalMode', 'edit');
             this.$emit('update:modalOpen', true);
@@ -112,6 +140,7 @@ export default {
                 console.log(res);
                 localStorage.removeItem('user');
                 localStorage.removeItem('token')
+                localStorage.removeItem('time')
                 location.reload();
             }
             catch (error) {
@@ -135,6 +164,9 @@ export default {
         },
         columns() {
             this.getUserRoom();
+        },
+        startTimer(oldVal) {
+            console.log(oldVal)
         }
     },
     mounted() {
@@ -152,6 +184,7 @@ export default {
                 }
             }
         });
+        this.startTimerr()
     },
     components: { ChatRoom, RoomList }
 }
@@ -187,7 +220,7 @@ export default {
     background-color: rgb(76, 195, 224);
     height: 100vh;
     overflow-y: auto;
-    z-index: 20;
+    z-index: 100;
     transition: all .3s linear;
 }
 

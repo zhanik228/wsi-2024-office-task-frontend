@@ -2,13 +2,16 @@
     <div class="chat">
         <h2 class="chat__title">{{ currentRoom?.name }}</h2>
         <div class="chat-body">
-            <p :class="message.user.id == currentUser.id ? 'my-msg' : ''" v-for="(message, index) in messages" :key="index">
-                {{ message.user.username }}: {{ message.message }}
-            </p>
+            <div :class="`msg ${message.user.id == currentUser.id ? 'my-msg' : ''}`" v-for="(message, index) in messages" :key="index">
+                <h2 class="chat-header" :style="`color: ${message.user.color}`">
+                    {{ message.user.username }}
+                </h2>
+                <div class="chat-message">{{ message.message }}</div>
+            </div>
         </div>
         <h2 class="chat-message__title">Send Message: </h2>
         <form @submit.prevent="sendMessage">
-            <input v-model="message"type="text" placeholder="...">
+            <input v-model="message" type="text" placeholder="...">
             <button type="submit">Send</button>
         </form>
     </div>
@@ -78,7 +81,18 @@ export default {
     gap: 10px;
 }
 
+.msg {
+    box-shadow: 1px 1px 1px 0 #ccc;
+    border-radius: 15px;
+    padding: 5px;
+    align-self: flex-start;
+}
+
 .my-msg {
     align-self: flex-end;
+}
+
+.chat-header {
+    font-size: 14px;
 }
 </style>
