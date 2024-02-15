@@ -3,10 +3,14 @@
         <h2 class="chat__title">{{ currentRoom?.name }}</h2>
         <div class="chat-body">
             <div :class="`msg ${message.user.id == currentUser.id ? 'my-msg' : ''}`" v-for="(message, index) in messages" :key="index">
-                <h2 class="chat-header" :style="`color: ${message.user.color}`">
+                <div style="display: flex; align-items: center; gap: 10px">
+                <img width="30" :src="`http://127.0.0.1:8000${message.user.avatar}`" alt="avatar">
+                
+                    <h2 class="chat-header" :style="`color: ${message.user.color}`">
                     {{ message.user.username }}
-                </h2>
-                <div class="chat-message">{{ message.message }}</div>
+                    </h2>
+                </div>
+                <span class="chat-message">{{ message.message }}</span>
             </div>
         </div>
         <h2 class="chat-message__title">Send Message: </h2>
@@ -67,7 +71,7 @@ export default {
 <style>
 .chat-body {
     background: #fff;
-    width: 100%;
+    width: 322px;
     height: 250px;
     overflow-y: auto;
     display: flex;
@@ -79,6 +83,12 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.chat-message {
+    word-wrap: break-word;
+    width: 200px;
+    display: block;
 }
 
 .msg {

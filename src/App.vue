@@ -690,7 +690,12 @@
         @dragover="handleDragZone"
         ></div>
         <div
-        class="open-office2"
+        class="open-office2-zone"
+        @dragleave="handleZoneLeave" 
+        @dragover="handleDragZone"
+        ></div>
+        <div
+        class="silent-room3-zone"
         @dragleave="handleZoneLeave" 
         @dragover="handleDragZone"
         ></div>
@@ -1079,10 +1084,10 @@ export default {
 
 .open-office2-zone {
   position: absolute;
-  width: 124px;
-  height: 134px;
-  top: 167px;
-  left: 825px;
+  width: 140px;
+  height: 164px;
+  top: 297px;
+  left: 805px;
   transition: all .3s linear;
   opacity: 0;
   z-index: 4;
@@ -1102,6 +1107,35 @@ export default {
 }
 
 .open-office2-zone.active {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.silent-room3-zone {
+  position: absolute;
+  width: 140px;
+  height: 74px;
+  top: 457px;
+  left: 805px;
+  transition: all .3s linear;
+  opacity: 0;
+  z-index: 4;
+}
+
+.silent-room3-zone::before {
+  content: 'silent-room3';
+  color: white;
+  position: absolute;
+  bottom: 100%;
+  background: #333;
+}
+
+.silent-room3-zone:hover {
+  opacity: 1;
+  border: 3px solid green;
+}
+
+.silent-room3-zone.active {
   opacity: 1;
   border: 3px solid green;
 }
