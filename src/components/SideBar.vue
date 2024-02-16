@@ -132,7 +132,7 @@ export default {
         },
         async logout() {
             try {
-                const res = axiosInstance.post('/api/v1/logout', {}, {
+                const res = await axiosInstance.post('/api/v1/logout', {}, {
                     headers: {
                         'Authorization': `Bearer ${this.token}`
                     }
