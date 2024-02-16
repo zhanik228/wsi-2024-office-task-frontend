@@ -12,7 +12,7 @@
                 <img width="120" height="120" :src="`http://127.0.0.1:8000${user.avatar}`" alt="avatar">
                 <div class="avatar-description">
                     <h2 class="avatar-description__title">{{ user.username }}</h2>
-                    <p>Being at work <span class="my-timer"></span></p>
+                    <p>Being at work <span class="my-timer">00:00:00</span></p>
                 </div>
                 <button @click="changeAvatar" class="edit-button">Change avatar</button>
                 <button @click="logout" class="end-button">End session</button>
@@ -62,7 +62,7 @@ export default {
     },
     methods: {
         startTimerr() {
-            const timer = localStorage.getItem('time') || "00:00:00"
+            const timer = document.querySelector('.my-timer').innerHTML
             const arr = timer.split(":")
             let hour = arr[0]
             let min = arr[1]
@@ -82,7 +82,7 @@ export default {
                 sec++
                 if (sec < 10) sec = "0" + sec
             }
-            document.querySelector('.my-timer').innerHTML = hour + "h" + min + "m"
+            document.querySelector('.my-timer').innerHTML = hour + ":" + min + ":" + sec
             setTimeout(this.startTimerr, 1000)
             localStorage.setItem('time',  hour + ":" + min + ":" + sec)
         },
